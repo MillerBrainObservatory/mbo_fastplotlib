@@ -2,7 +2,7 @@
 
 [project]
 dynamic = ["version"]
-name = "fastplotlib"
+name = "mbo-fpl"
 description = "Next-gen fast plotting library running on WGPU using the Pygfx rendering engine "
 readme = "README.md"
 license = { file = "LICENSE" }

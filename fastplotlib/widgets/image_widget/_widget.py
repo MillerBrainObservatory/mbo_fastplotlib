@@ -672,6 +672,7 @@ class ImageWidget:
         # force frame to update
         self.current_index = self.current_index
 
+
     def _process_indices(
         self, array: np.ndarray, slice_indices: dict[str, int]
     ) -> np.ndarray:
@@ -705,48 +706,47 @@ class ImageWidget:
 
         numerical_dims = list()
 
-        # Totally number of dimensions for this specific array
         curr_ndim = self.data[data_ix].ndim
 
-        # Initialize slices for each dimension of array
         indexer = [slice(None)] * curr_ndim
 
-        # Maps from n_scrollable_dims to one of "", "t", "tz", etc.
         curr_scrollable_format = SCROLLABLE_DIMS_ORDER[self.n_scrollable_dims[data_ix]]
         for dim in list(slice_indices.keys()):
             if dim not in curr_scrollable_format:
                 continue
-            # get axes order for that specific array
             numerical_dim = curr_scrollable_format.index(dim)
-
             indices_dim = slice_indices[dim]
 
-            # takes care of index selection (window slicing) for this specific axis
             indices_dim = self._get_window_indices(data_ix, numerical_dim, indices_dim)
 
-            # set the indices for this dimension
             indexer[numerical_dim] = indices_dim
 
             numerical_dims.append(numerical_dim)
 
-        # apply indexing to the array
-        # use window function is given for this dimension
         if self.window_funcs is not None:
-            a = array
-            for i, dim in enumerate(sorted(numerical_dims)):
-                dim_str = curr_scrollable_format[dim]
-                dim = dim - i  # since we loose a dimension every iteration
-                _indexer = [slice(None)] * (curr_ndim - i)
-                _indexer[dim] = indexer[dim + i]
+            indexer = [slice(None)] * array.ndim
+            window_axes = []
 
-                # if the indexer is an int, this dim has no window func
-                if isinstance(_indexer[dim], int):
-                    a = a[tuple(_indexer)]
-                else:
-                    # if the indices are from `self._get_window_indices`
-                    func = self.window_funcs[dim_str].func
-                    window = a[tuple(_indexer)]
-                    a = func(window, axis=dim)
+            # build indices before indexing
+            for dim_str in curr_scrollable_format:
+                if dim_str not in slice_indices:
+                    continue
+
+                numerical_dim = curr_scrollable_format.index(dim_str)
+                idx = slice_indices[dim_str]
+                idx = self._get_window_indices(data_ix, numerical_dim, idx)
+
+                indexer[numerical_dim] = idx
+                if not isinstance(idx, int):
+                    window_axes.append((numerical_dim, dim_str))
+
+            a = array[tuple(indexer)]
+
+            for numerical_dim, dim_str in window_axes:
+                func = self.window_funcs[dim_str].func
+                effective_axis = numerical_dim - sum(ax < numerical_dim for ax, _ in window_axes if ax < numerical_dim)
+                a = func(a, axis=effective_axis)
+
             return a
         else:
             return array[tuple(indexer)]
