@@ -71,11 +71,11 @@ Repository = "https://github.com/fastplotlib/fastplotlib"
 requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.modules]
-fastplotlib = { path = "fastplotlib" }
+[tool.flit.sdist]
+include = ["fastplotlib"]
 
-[tool.flit.metadata]
-module = "fastplotlib"
+[tool.flit.module]
+name = "fastplotlib"
 
 # ===== Tooling
 
