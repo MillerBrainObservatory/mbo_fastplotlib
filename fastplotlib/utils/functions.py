@@ -284,12 +284,12 @@ def quick_min_max(data: np.ndarray, max_size=1e6) -> tuple[float, float]:
         (min, max) estimate
     """
 
-    if hasattr(data, "min") and hasattr(data, "max"):
-        # if value is pre-computed
-        if isinstance(data.min, (float, int, np.number)) and isinstance(
-            data.max, (float, int, np.number)
+    if hasattr(data, "vmin") and hasattr(data, "vmax"):
+        # if value is pre-computed (vmin/vmax properties for display)
+        if isinstance(data.vmin, (float, int, np.number)) and isinstance(
+            data.vmax, (float, int, np.number)
         ):
-            return data.min, data.max
+            return data.vmin, data.vmax
 
     data = subsample_array(data, max_size=max_size)
 
@@ -454,11 +454,11 @@ def subsample_array(
     np.ndarray
         subsample of the input array
     """
-    # Fast path: if array has pre-computed min/max, sample a single frame
+    # Fast path: if array has pre-computed vmin/vmax, sample a single frame
     # This avoids expensive full-array subsampling for lazy arrays
-    if hasattr(arr, "min") and hasattr(arr, "max"):
-        if isinstance(arr.min, (float, int, np.number)) and isinstance(
-            arr.max, (float, int, np.number)
+    if hasattr(arr, "vmin") and hasattr(arr, "vmax"):
+        if isinstance(arr.vmin, (float, int, np.number)) and isinstance(
+            arr.vmax, (float, int, np.number)
         ):
             # Return single frame for histogram computation
             # This is much faster for large lazy arrays
