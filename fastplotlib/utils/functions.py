@@ -454,6 +454,16 @@ def subsample_array(
     np.ndarray
         subsample of the input array
     """
+    # Fast path: if array has pre-computed min/max, sample a single frame
+    # This avoids expensive full-array subsampling for lazy arrays
+    if hasattr(arr, "min") and hasattr(arr, "max"):
+        if isinstance(arr.min, (float, int, np.number)) and isinstance(
+            arr.max, (float, int, np.number)
+        ):
+            # Return single frame for histogram computation
+            # This is much faster for large lazy arrays
+            return np.asarray(arr[0])
+
     full_shape = np.array(arr.shape, dtype=np.uint64)
     if np.prod(full_shape) <= max_size:
         return arr[:]  # no need to subsample if already below the threshold
