@@ -14,6 +14,7 @@ import pygfx
 from ._figure import Figure
 from ..ui import EdgeWindow, SubplotToolbar, StandardRightClickMenu, Popup, GUI_EDGES
 from ..ui import ColormapPicker
+from ..ui._base import COLLAPSE_BUTTON_WIDTH
 
 
 class ImguiFigure(Figure):
@@ -116,6 +117,9 @@ class ImguiFigure(Figure):
 
         self.register_popup(ColormapPicker)
 
+        # spacebar keybind to toggle collapse of right-side GUI
+        self.renderer.add_event_handler(self._toggle_right_gui_collapse, "key_down")
+
     @property
     def default_imgui_font(self) -> imgui.ImFont:
         return self._default_imgui_font
@@ -129,6 +133,11 @@ class ImguiFigure(Figure):
     def imgui_renderer(self) -> ImguiRenderer:
         """imgui renderer"""
         return self._imgui_renderer
+
+    def _toggle_right_gui_collapse(self, ev):
+        """toggle collapse state of right-side GUI when spacebar is pressed"""
+        if ev.key == " " and self._guis["right"] is not None:
+            self._guis["right"].collapsed = not self._guis["right"].collapsed
 
     def _render(self, draw=False):
         if self.imgui_show_fps:
@@ -213,7 +222,10 @@ class ImguiFigure(Figure):
 
         for edge in ["right"]:
             if self.guis[edge]:
-                width -= self._guis[edge].size
+                # when collapsed, the expand button floats over plot area
+                if not self._guis[edge].collapsed:
+                    # subtract gui size plus collapse button width
+                    width -= self._guis[edge].size + COLLAPSE_BUTTON_WIDTH
 
         for edge in ["bottom"]:
             if self.guis[edge]:
