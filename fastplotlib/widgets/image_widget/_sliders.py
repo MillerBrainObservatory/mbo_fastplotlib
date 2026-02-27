@@ -175,7 +175,7 @@ class ImageWidgetSliders(EdgeWindow):
 
             # slider for this dimension
             changed, index = imgui.slider_int(
-                f"d: {dim}", v=val, v_min=0, v_max=vmax, flags=flags
+                f"##dim_{dim}", v=val, v_min=0, v_max=vmax, flags=flags
             )
 
             if changed:
